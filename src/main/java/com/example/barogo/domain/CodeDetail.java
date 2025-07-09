@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.sql.Timestamp;
 import java.util.Date;
 
 @Getter
@@ -25,13 +26,13 @@ public class CodeDetail {
     private String langType;
 
     @Column(name = "cre_dttm",nullable = false)
-    private Date createDate;
+    private Timestamp createDate;
 
     @Column(name = "cre_user_id",nullable = false)
     private String createUser;
 
     @Column(name = "upd_dttm")
-    private Date updateDate;
+    private Timestamp updateDate;
 
     @Column(name = "upd_user_id")
     private String updateUser;
