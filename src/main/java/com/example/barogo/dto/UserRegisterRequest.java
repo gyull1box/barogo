@@ -16,6 +16,8 @@ public class UserRegisterRequest {
     @ValidPassword
     private String password;
 
+    @NotBlank(message = "핸드폰번호를 입력해주세요.")
+    @Pattern(regexp = "^[0-9]+$", message = "숫자만 입력 가능합니다.")
     private String phone;
 
     @NotBlank(message = "이름을 입력해주세요.")

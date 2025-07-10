@@ -47,7 +47,12 @@ public class Shipment {
     @Column(name = "ttl_price",nullable = false)
     private Long ttlPrice;
 
-//    private Dspch dspchNo;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="dspch_no")
+    private Dispatch dspchNo;
+
+    @Column(name = "track_no")
+    private String trackingNo;
 
     @Column(name = "cre_dttm",nullable = false)
     private Timestamp createDate;
