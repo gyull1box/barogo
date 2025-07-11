@@ -1,5 +1,8 @@
 package com.example.barogo.type;
 
+import lombok.Getter;
+
+@Getter
 public enum UserType {
     CUSTOMER("10"),
     ADMIN("20"),
@@ -11,9 +14,6 @@ public enum UserType {
         this.code = code;
     }
 
-    public String getCode() {
-        return code;
-    }
 
     public static UserType fromCode(String code) {
         for (UserType type : UserType.values()) {

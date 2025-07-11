@@ -1,14 +1,12 @@
 package com.example.barogo.domain;
 
 import com.example.barogo.type.UserType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -40,7 +38,10 @@ public class User {
     private LocalDate passwordExpireDate;
 
     @Column(name = "use_yn", nullable = false, columnDefinition = "CHAR(1) DEFAULT 'Y'")
-    private char useYn;
+    private char useYn = 'Y';
+
+    @Column(name = "valid_yn", nullable = false, columnDefinition = "CHAR(1) DEFAULT 'Y'")
+    private char validYn = 'Y';
 
     @Column(name="start_use_dttm", nullable = false)
     private LocalDateTime startUseDttm;
@@ -48,11 +49,14 @@ public class User {
     @Column(name="finish_use_dttm")
     private LocalDateTime finishUseDttm;
 
-    @Column(name="refresh_token")
+    @Column(name="refresh_token", length = 512)
     private String refreshToken;
 
-    @Column(name="fail_cnt")
-    private int failedCount;      // 크리덴셜 스터핑 대응
+    @Column
+    private Instant refreshExp;
+
+    @Column(name = "fail_cnt", nullable = false, columnDefinition = "INT DEFAULT 0")
+    private int failedCount = 0;      // 크리덴셜 스터핑 대응
 
     @Column(name = "cre_dttm", nullable = false)
     private LocalDateTime createDate;
@@ -74,5 +78,9 @@ public class User {
 
     public boolean isActive() {
         return this.useYn == 'Y';
+    }
+
+    public boolean isAccountLocked() {
+        return this.validYn == 'N';
     }
 }

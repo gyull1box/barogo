@@ -4,27 +4,26 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.Date;
 
+@Entity
+@Table(name = "payment")
 @Getter
 @Setter
-@Entity
-public class CodeDetail {
+public class Payment {
     @Id
-    @ManyToOne(fetch = FetchType.LAZY)
-    private Code code;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "payment_id")
+    private Long paymentMethodId;
 
-    @Id
-    @Column(name = "detail_code")
-    private String detaiCode;
+    @Column(name = "code", nullable = false)
+    private String methodCode;
 
-    @Column(name = "detail_name", nullable = false)
-    private String detailName;
+    @Column(name = "name", nullable = false)
+    private String methodName;
 
-    @Column(name = "lang_tp", nullable = false)
-    private String langType;
+    @Column(name = "use_yn", nullable = false, columnDefinition = "CHAR(1) DEFAULT 'Y'")
+    private char useYn = 'Y';
 
     @Column(name = "cre_dttm",nullable = false)
     private LocalDateTime createDate;
@@ -37,5 +36,4 @@ public class CodeDetail {
 
     @Column(name = "upd_user_id")
     private String updateUser;
-
 }

@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Getter
@@ -22,13 +23,13 @@ public class Code {
     private boolean useYn;
 
     @Column(name = "cre_dttm",nullable = false)
-    private Timestamp createDate;
+    private LocalDateTime createDate;
 
     @Column(name = "cre_user_id",nullable = false)
     private String createUser;
 
     @Column(name = "upd_dttm")
-    private Timestamp updateDate;
+    private LocalDateTime updateDate;
 
     @Column(name = "upd_user_id")
     private String updateUser;

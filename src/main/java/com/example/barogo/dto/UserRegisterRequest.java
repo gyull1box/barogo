@@ -1,5 +1,6 @@
 package com.example.barogo.dto;
 
+import com.example.barogo.validation.PasswordMatches;
 import com.example.barogo.validation.ValidPassword;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -8,6 +9,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
+@PasswordMatches
 public class UserRegisterRequest {
 
     @NotBlank(message = "아이디를 입력해주세요.")
@@ -15,6 +17,9 @@ public class UserRegisterRequest {
 
     @ValidPassword
     private String password;
+
+    @NotBlank(message = "비밀번호 확인을 위해 한번 더 입력해주세요.")
+    private String passwordConfirm;
 
     @NotBlank(message = "핸드폰번호를 입력해주세요.")
     @Pattern(regexp = "^[0-9]+$", message = "숫자만 입력 가능합니다.")

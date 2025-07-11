@@ -15,7 +15,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
@@ -49,7 +48,7 @@ public class UserControllerTest {
         user.setUserId("sohee.jeon");
         user.setPassword(encoder.encode("Password123!"));
         user.setName("테스트");
-        user.setType("CUSTOMER");  // enum 대신 문자열 직접 입력
+        user.setType(UserType.CUSTOMER.getCode());  // enum 대신 문자열 직접 입력
         user.setPhone("01011112222");
         user.setPasswordExpireDate(LocalDate.now().plusDays(90));
         user.setStartUseDttm(LocalDateTime.now());
@@ -111,6 +110,7 @@ public class UserControllerTest {
         UserRegisterRequest request = new UserRegisterRequest();
         request.setUserId(userId);
         request.setPassword(password);
+        request.setPasswordConfirm(password);
         request.setName(name);
         request.setPhone(phone);
         return request;

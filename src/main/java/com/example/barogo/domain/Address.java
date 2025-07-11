@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Entity
@@ -39,14 +40,21 @@ public class Address {
     @Column(name = "recipient_name")
     private String recipientName;
 
+    @Column(name = "name")
+    private String addressName; // 회사, 집 ..
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="user_id")
+    private User userId; // 사용자 지정 주소인 경우 사용 (회사, 집)
+
     @Column(name = "cre_dttm",nullable = false)
-    private Timestamp createDate;
+    private LocalDateTime createDate;
 
     @Column(name = "cre_user_id",nullable = false)
     private String createUser;
 
     @Column(name = "upd_dttm")
-    private Timestamp updateDate;
+    private LocalDateTime updateDate;
 
     @Column(name = "upd_user_id")
     private String updateUser;

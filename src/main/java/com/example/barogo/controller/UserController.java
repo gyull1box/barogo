@@ -3,15 +3,33 @@ package com.example.barogo.controller;
 import com.example.barogo.domain.User;
 import com.example.barogo.dto.LoginRequest;
 import com.example.barogo.dto.LoginResponse;
+import com.example.barogo.dto.OrderDto;
 import com.example.barogo.dto.UserRegisterRequest;
 import com.example.barogo.exception.PasswordExpiredException;
 import com.example.barogo.exception.UnauthorizedException;
+import com.example.barogo.security.JwtAuthenticationFilter;
 import com.example.barogo.security.JwtProvider;
 import com.example.barogo.service.UserService;
+import com.example.barogo.type.OrderStatusType;
+import com.example.barogo.type.UserType;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/user")
@@ -37,20 +55,7 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
-        User user = userService.findByUserId(loginRequest.getUserId());
-
-//      if (user.isAccountLocked()) throw new UnauthorizedException("계정이 잠겨 있습니다.");
-
-        if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
-            userService.increaseFailedCount(user); // 크리덴셜스터핑
-            throw new UnauthorizedException("비밀번호가 일치하지 않습니다.");
-        }
-
-        if (user.isPasswordExpired()) {
-            throw new PasswordExpiredException("비밀번호가 만료되었습니다.");
-        }
-
-        userService.resetFailedCount(user);
+        User user = userService.authenticate(loginRequest.getUserId(), loginRequest.getPassword());
 
         String accessToken = jwtProvider.generateAccessToken(user);
         String refreshToken = jwtProvider.generateRefreshToken(user);
@@ -58,6 +63,42 @@ public class UserController {
         user.setRefreshToken(refreshToken);
         userService.save(user);
 
-        return ResponseEntity.ok(new LoginResponse(accessToken, refreshToken));
+        ResponseCookie cookie = ResponseCookie.from("refresh_token", refreshToken)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Lax")
+                .path("/")
+                .maxAge(Duration.ofDays(14))
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(new LoginResponse(accessToken, refreshToken));
+    }
+
+
+    @GetMapping("/orders")
+    public ResponseEntity<Page<OrderDto>> getUserOrders (
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) OrderStatusType status,
+            Principal principal,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "100") int limit
+    ) {
+
+        if (startDate == null || endDate == null || ChronoUnit.DAYS.between(startDate, endDate) > 2) {
+            throw new IllegalArgumentException("조회 범위는 최대 3일입니다.");
+        }
+
+        if(startDate.isAfter(endDate)) {
+            throw new IllegalArgumentException("조회 시작일이 종료일보다 클 수 없습니다.");
+        }
+
+        String userId = principal.getName();
+        Date fromDate = java.sql.Date.valueOf(startDate);
+        Date toDate   = java.sql.Date.valueOf(endDate.plusDays(1)); // 마지막 날 23:59:59 포함
+        Page<OrderDto> orders = userService.searchOrders(userId, fromDate, toDate, status, page, limit);
+        return ResponseEntity.ok(orders);
     }
 }
