@@ -29,3 +29,6 @@
 
 ## 4. API 명세서
 https://denim-healer-391.notion.site/22d685e68bd680c78135f47b18681509?v=22d685e68bd68094bcb7000ce6255730&source=copy_link
+
+## 5. DDL Script 위치
+src/main/resources/sql/*
