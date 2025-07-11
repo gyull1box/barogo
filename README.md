@@ -28,4 +28,4 @@
 - 필수 요구가 아니라서 과제 기간 내 핵심 기능 완성을 우선하였습니다.
 
 ## 4. API 명세서
-https://www.notion.so/22d685e68bd680c78135f47b18681509?v=22d685e68bd68094bcb7000ce6255730&source=copy_link
+https://denim-healer-391.notion.site/22d685e68bd680c78135f47b18681509?v=22d685e68bd68094bcb7000ce6255730&source=copy_link
