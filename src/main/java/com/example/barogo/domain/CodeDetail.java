@@ -11,6 +11,7 @@ import java.util.Date;
 @Getter
 @Setter
 @Entity
+@Table(name = "code_dtl")
 public class CodeDetail {
     @Id
     @ManyToOne(fetch = FetchType.LAZY)

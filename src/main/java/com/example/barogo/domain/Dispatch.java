@@ -10,7 +10,8 @@ import lombok.Setter;
 @Setter
 public class Dispatch {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "dspch_seq_gen")
+    @SequenceGenerator(name = "dspch_seq_gen", sequenceName = "DSPCH_NO", allocationSize = 1)
     @Column(name = "dspch_no")
     private Long dspchNo;
 

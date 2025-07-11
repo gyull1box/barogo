@@ -261,7 +261,7 @@ public class UserControllerTest {
 //
 //        OrderEntity confirmedOrder = new OrderEntity();
 //        confirmedOrder.setOrderId(orderId);
-//        confirmedOrder.setUserId(new User(userId));  // User 엔티티 생성자에 userId 넣는 가정
+//        confirmedOrder.setUserId(new User(userId));
 //        confirmedOrder.setOrderStatus(OrderStatusType.CONFIRM.getStatus());
 //
 //        Mockito.when(orderRepository.findById(orderId))

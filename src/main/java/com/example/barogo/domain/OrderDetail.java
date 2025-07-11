@@ -14,23 +14,24 @@ public class OrderDetail {
     private OrderEntity orderId;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "order_dtl_seq_gen")
+    @SequenceGenerator(name = "order_dtl_seq_gen", sequenceName = "ORDER_DTL_ID", allocationSize = 1)
     @Column(name="order_dtl_id")
     private Long orderDtlId;
 
-    @Column(nullable = false, columnDefinition = "BIGINT DEFAULT 0")
+    @Column(nullable = false)
     private Long volumn = 0L;
 
-    @Column(nullable = false, columnDefinition = "BIGINT DEFAULT 0")
+    @Column(nullable = false)
     private Long weight = 0L;
 
     @Column(nullable = false)
     private String unit;
 
-    @Column(nullable = false, columnDefinition = "BIGINT DEFAULT 0")
+    @Column(nullable = false)
     private Long price = 0L;
 
-    @Column(nullable = false, columnDefinition = "INT DEFAULT 1")
+    @Column(nullable = false)
     private Integer quantity = 1;
 
     @Column(name = "cre_dttm",nullable = false)

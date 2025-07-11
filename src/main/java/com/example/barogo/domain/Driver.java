@@ -10,7 +10,8 @@ import lombok.Setter;
 @Setter
 public class Driver {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "drvr_seq_gen")
+    @SequenceGenerator(name = "drvr_seq_gen", sequenceName = "DRIVER_ID", allocationSize = 1)
     @Column(name = "drvr_id")
     private Long driverId;
 

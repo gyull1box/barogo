@@ -10,12 +10,13 @@ import java.time.LocalDateTime;
 import java.util.Date;
 
 @Entity
-@Table(name = "order", indexes = {@Index(name="idx_order_01", columnList = "user_id, delivery_date")})
+@Table(name = "orders", indexes = {@Index(name="idx_order_01", columnList = "user_id, delivery_date")})
 @Getter
 @Setter
 public class OrderEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "order_seq_gen")
+    @SequenceGenerator(name = "order_seq_gen", sequenceName = "ORDER_ID", allocationSize = 1)
     @Column(name = "order_id")
     private Long orderId;
 
@@ -40,16 +41,16 @@ public class OrderEntity {
     @Column(name = "status", nullable = false)
     private String orderStatus;
 
-    @Column(name = "ttl_volume",nullable = false, columnDefinition = "BIGINT DEFAULT 0")
+    @Column(name = "ttl_volume",nullable = false)
     private Long ttlVolume = 0L;
 
-    @Column(name = "ttl_weight",nullable = false, columnDefinition = "BIGINT DEFAULT 0")
+    @Column(name = "ttl_weight",nullable = false)
     private Long ttlWeight = 0L;
 
-    @Column(name = "ttl_price",nullable = false, columnDefinition = "BIGINT DEFAULT 0")
+    @Column(name = "ttl_price",nullable = false)
     private Long ttlPrice = 0L;
 
-    @Column(name = "delivery_fee",nullable = false, columnDefinition = "BIGINT DEFAULT 0")
+    @Column(name = "delivery_fee",nullable = false)
     private Long deliveryFee = 0L;
 
     @OneToOne
