@@ -1,5 +1,6 @@
 package com.example.barogo;
 
+import com.example.barogo.controller.UserController;
 import com.example.barogo.domain.OrderEntity;
 import com.example.barogo.domain.User;
 import com.example.barogo.dto.LoginRequest;
@@ -12,8 +13,13 @@ import com.example.barogo.service.UserService;
 import com.example.barogo.type.OrderStatusType;
 import com.example.barogo.type.UserType;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,8 +68,12 @@ public class UserControllerTest {
 
     @MockBean
     private UserService userService;
-    @Autowired
+
+    @MockBean
     private OrderRepository orderRepository;
+
+    @InjectMocks
+    UserController userController;
 
     @BeforeEach
     void setUp() {
@@ -253,28 +263,29 @@ public class UserControllerTest {
     @Test
     @WithMockUser(username = "sohee.jeon")
     void modifyOrder_fail_whenOrderIsConfirmed() throws Exception {
-//        Long orderId = 1L;
-//        String userId = "sohee.jeon";
-//
-//        OrderModifyRequest request = new OrderModifyRequest();
-//        request.setMemo("변경 메모");
-//
-//        OrderEntity confirmedOrder = new OrderEntity();
-//        confirmedOrder.setOrderId(orderId);
-//        confirmedOrder.setUserId(new User(userId));
-//        confirmedOrder.setOrderStatus(OrderStatusType.CONFIRM.getStatus());
-//
-//        Mockito.when(orderRepository.findById(orderId))
-//                .thenReturn(Optional.of(confirmedOrder));
-//
-//        Mockito.when(userService.modifyOrder(Mockito.eq(userId), Mockito.eq(orderId), Mockito.any()))
-//                .thenThrow(new IllegalStateException("확정된 주문은 수정할 수 없습니다."));
-//
-//        mockMvc.perform(patch("/api/user/orders/{orderId}/modify", orderId)
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(new ObjectMapper().writeValueAsString(request)))
-//                .andExpect(status().isBadRequest())
-//                .andExpect(jsonPath("$.message").value("확정된 주문은 수정할 수 없습니다."));
+        Long orderId = 1L;
+        String userId = "sohee.jeon";
+
+        OrderModifyRequest request = new OrderModifyRequest();
+        request.setMemo("변경 메모");
+
+        OrderEntity confirmedOrder = new OrderEntity();
+        confirmedOrder.setOrderId(orderId);
+        confirmedOrder.setUserId(new User(userId));
+        confirmedOrder.setOrderStatus(OrderStatusType.CONFIRM.getStatus());
+
+        Mockito.when(orderRepository.findById(orderId))
+                .thenReturn(Optional.of(confirmedOrder));
+
+        Mockito.when(userService.modifyOrder(eq(userId), eq(orderId), any()))
+                .thenThrow(new IllegalStateException("확정된 주문은 수정할 수 없습니다."));
+
+        mockMvc.perform(patch("/api/user/orders/{orderId}/modify", orderId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andDo(print())
+                .andExpect(jsonPath("$.message").value("확정된 주문은 수정할 수 없습니다."));
     }
 
 }
