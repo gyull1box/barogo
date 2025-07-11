@@ -83,4 +83,8 @@ public class User {
     public boolean isAccountLocked() {
         return this.validYn == 'N';
     }
+
+    public User(String userId){
+        this.userId = userId;
+    }
 }

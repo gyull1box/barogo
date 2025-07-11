@@ -21,10 +21,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.*;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -75,7 +74,7 @@ public class UserController {
 
 
     @GetMapping("/orders")
-    public ResponseEntity<ApiResponse<Page<OrderDto>>> getUserOrders(
+    public ResponseEntity<ApiResponse<List<OrderDto>>> getUserOrders(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(required = false) OrderStatusType status,
@@ -93,10 +92,22 @@ public class UserController {
 
         String userId = principal.getName();
         Date fromDate = java.sql.Date.valueOf(startDate);
-        Date toDate   = java.sql.Date.valueOf(endDate.plusDays(1)); // 마지막 날 23:59:59 포함
+        LocalDateTime endDateTime = endDate.atTime(LocalTime.MAX);
+        Date toDate = Date.from(endDateTime.atZone(ZoneId.systemDefault()).toInstant());
+
         Page<OrderDto> orders = userService.searchOrders(userId, fromDate, toDate, status, page, limit);
-        return ResponseEntity.ok(ApiResponse.success(orders));
+        return ResponseEntity.ok(ApiResponse.success(orders.getContent()));
     }
 
 
+    @PatchMapping("/orders/{orderId}/modify")
+    public ResponseEntity<ApiResponse<OrderDto>> modifyOrder(
+            @PathVariable Long orderId,
+            @RequestBody OrderModifyRequest request,
+            Principal principal) {
+
+        String userId = principal.getName();
+        OrderDto modifiedOrder = userService.modifyOrder(userId, orderId, request);
+        return ResponseEntity.ok(ApiResponse.success(modifiedOrder));
+    }
 }

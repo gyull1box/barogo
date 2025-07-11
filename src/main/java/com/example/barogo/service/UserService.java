@@ -2,9 +2,11 @@ package com.example.barogo.service;
 
 import com.example.barogo.domain.*;
 import com.example.barogo.dto.OrderDto;
+import com.example.barogo.dto.OrderModifyRequest;
 import com.example.barogo.dto.UserRegisterRequest;
 import com.example.barogo.exception.PasswordExpiredException;
 import com.example.barogo.exception.UnauthorizedException;
+import com.example.barogo.repository.AddressRepository;
 import com.example.barogo.repository.OrderRepository;
 import com.example.barogo.repository.UserRepository;
 import com.example.barogo.type.OrderStatusType;
@@ -16,6 +18,7 @@ import jakarta.annotation.Nullable;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -35,16 +38,21 @@ public class UserService {
 
     private final OrderRepository orderRepository;
 
+    private final AddressRepository addressRepository;
+
     private final static int FAIL_PERMIT_COUNT = 5;
     private final JPAQueryFactory jpaQueryFactory;
 
     public UserService(UserRepository userRepository,
                        BCryptPasswordEncoder passwordEncoder,
-                       OrderRepository orderRepository, JPAQueryFactory jpaQueryFactory) {
+                       OrderRepository orderRepository,
+                       JPAQueryFactory jpaQueryFactory,
+                       AddressRepository addressRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = new BCryptPasswordEncoder();
         this.orderRepository = orderRepository;
         this.jpaQueryFactory = jpaQueryFactory;
+        this.addressRepository = addressRepository;
     }
 
     @Transactional
@@ -133,7 +141,7 @@ public class UserService {
             @Nullable OrderStatusType status,
             int page, int limit) {
 
-        int pg = page  <= 0 ? 1   : page;
+        int pg = page <= 0 ? 1 : page;
         int lm = limit <= 0 ? 100 : limit;
 
         Pageable pageable = PageRequest.of(pg - 1, lm, Sort.by(Sort.Direction.DESC, "deliveryDate"));
@@ -141,15 +149,32 @@ public class UserService {
         QOrderEntity orderEntity = QOrderEntity.orderEntity;
         QPayment payment = QPayment.payment;
         QAddress frmAddr = QAddress.address;
-        QAddress toAddr  = new QAddress("toAddr");
+        QAddress toAddr = new QAddress("toAddr");
 
-        BooleanBuilder cond = new BooleanBuilder()
-                .and(orderEntity.userId.userId.eq(userId))
-                .and(orderEntity.deliveryDate.goe(fromDate))
-                .and(orderEntity.deliveryDate.lt(toDate)); // < 다음날 00:00
+        BooleanBuilder cond = new BooleanBuilder();
 
-        if (status != null) {
+        // userId null 체크 후 조건 추가
+        if (userId != null) {
+            cond.and(orderEntity.userId.userId.eq(userId));
+        } else {
+            cond.and(orderEntity.userId.userId.isNull());
+        }
+
+        // fromDate null 체크 후 조건 추가
+        if (fromDate != null) {
+            cond.and(orderEntity.deliveryDate.goe(fromDate));
+        }
+
+        // toDate null 체크 후 조건 추가
+        if (toDate != null) {
+            cond.and(orderEntity.deliveryDate.lt(toDate));
+        }
+
+        // status null 체크 후 조건 추가
+        if (status != null && status.name() != null) {
             cond.and(orderEntity.orderStatus.eq(status.name()));
+        } else {
+            cond.and(orderEntity.orderStatus.isNull());
         }
 
         JPAQuery<OrderEntity> query = jpaQueryFactory
@@ -161,10 +186,8 @@ public class UserService {
                 .where(cond)
                 .orderBy(orderEntity.deliveryDate.desc());
 
-        // 전체 개수
         long total = query.fetchCount();
 
-        // 페이징-쿼리
         List<OrderEntity> content = query
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -174,6 +197,44 @@ public class UserService {
                 content.stream().map(OrderDto::fromEntity).toList(),
                 pageable,
                 total);
+    }
+
+    @Transactional
+    public OrderDto modifyOrder(String userId, Long orderId, OrderModifyRequest request) {
+        OrderEntity order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
+
+        if (!order.getUserId().getUserId().equals(userId)) {
+            throw new AccessDeniedException("본인의 주문만 수정할 수 있습니다.");
+        }
+
+        if (OrderStatusType.CANCELLED.getStatus().equals(order.getOrderStatus())) {
+            throw new IllegalStateException("이미 취소된 주문입니다.");
+        }
+        if (order.getOrderStatus().compareTo(OrderStatusType.CONFIRM.getStatus()) >= 0) {
+            throw new IllegalStateException("확정된 주문은 수정할 수 없습니다.");
+        }
+
+        Address toAddress = order.getToAddress();
+        if (request.getZipCode() != null) toAddress.setZipCode(request.getZipCode());
+        if (request.getCity() != null) toAddress.setCity(request.getCity());
+        if (request.getDistrict() != null) toAddress.setDistrict(request.getDistrict());
+        if (request.getDetail() != null) toAddress.setDetail(request.getDetail());
+        if (request.getPhone() != null) toAddress.setPhone(request.getPhone());
+        if (request.getRecipientName() != null) toAddress.setRecipientName(request.getRecipientName());
+        if (request.getAddressName() != null) toAddress.setAddressName(request.getAddressName());
+
+        toAddress.setUpdateDate(LocalDateTime.now());
+        toAddress.setUpdateUser(userId);
+
+        order.setMemo(request.getMemo());
+
+        addressRepository.save(toAddress);
+        order.setUpdateDate(LocalDateTime.now());
+        order.setUpdateUser(userId);
+        OrderEntity savedOrder = orderRepository.save(order);
+
+        return OrderDto.fromEntity(savedOrder);
     }
 
 }
