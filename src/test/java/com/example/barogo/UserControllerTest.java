@@ -116,4 +116,7 @@ public class UserControllerTest {
         return request;
     }
 
+    @Test
+    void getUserOrders_success(){}
+
 }

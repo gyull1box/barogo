@@ -1,10 +1,7 @@
 package com.example.barogo.controller;
 
 import com.example.barogo.domain.User;
-import com.example.barogo.dto.LoginRequest;
-import com.example.barogo.dto.LoginResponse;
-import com.example.barogo.dto.OrderDto;
-import com.example.barogo.dto.UserRegisterRequest;
+import com.example.barogo.dto.*;
 import com.example.barogo.exception.PasswordExpiredException;
 import com.example.barogo.exception.UnauthorizedException;
 import com.example.barogo.security.JwtAuthenticationFilter;
@@ -78,14 +75,13 @@ public class UserController {
 
 
     @GetMapping("/orders")
-    public ResponseEntity<Page<OrderDto>> getUserOrders (
+    public ResponseEntity<ApiResponse<Page<OrderDto>>> getUserOrders(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(required = false) OrderStatusType status,
             Principal principal,
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "100") int limit
-    ) {
+            @RequestParam(defaultValue = "100") int limit) {
 
         if (startDate == null || endDate == null || ChronoUnit.DAYS.between(startDate, endDate) > 2) {
             throw new IllegalArgumentException("조회 범위는 최대 3일입니다.");
@@ -99,6 +95,8 @@ public class UserController {
         Date fromDate = java.sql.Date.valueOf(startDate);
         Date toDate   = java.sql.Date.valueOf(endDate.plusDays(1)); // 마지막 날 23:59:59 포함
         Page<OrderDto> orders = userService.searchOrders(userId, fromDate, toDate, status, page, limit);
-        return ResponseEntity.ok(orders);
+        return ResponseEntity.ok(ApiResponse.success(orders));
     }
+
+
 }
