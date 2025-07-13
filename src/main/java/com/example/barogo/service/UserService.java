@@ -153,28 +153,19 @@ public class UserService {
 
         BooleanBuilder cond = new BooleanBuilder();
 
-        // userId null 체크 후 조건 추가
         if (userId != null) {
             cond.and(orderEntity.userId.userId.eq(userId));
         } else {
             cond.and(orderEntity.userId.userId.isNull());
         }
 
-        // fromDate null 체크 후 조건 추가
-        if (fromDate != null) {
-            cond.and(orderEntity.deliveryDate.goe(fromDate));
+        if (fromDate != null && toDate != null) {
+            cond.and(orderEntity.deliveryDate.between(fromDate, toDate));
         }
 
-        // toDate null 체크 후 조건 추가
-        if (toDate != null) {
-            cond.and(orderEntity.deliveryDate.lt(toDate));
-        }
 
-        // status null 체크 후 조건 추가
         if (status != null && status.name() != null) {
             cond.and(orderEntity.orderStatus.eq(status.name()));
-        } else {
-            cond.and(orderEntity.orderStatus.isNull());
         }
 
         JPAQuery<OrderEntity> query = jpaQueryFactory
