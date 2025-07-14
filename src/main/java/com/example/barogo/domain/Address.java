@@ -14,7 +14,7 @@ import java.util.Date;
 public class Address {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "order_seq_gen")
-    @SequenceGenerator(name = "order_seq_gen", sequenceName = "ORDER_ID", allocationSize = 1)
+    @SequenceGenerator(name = "order_seq_gen", sequenceName = "ADDR_ID", allocationSize = 1)
     @Column(name = "addr_id")
     private Long addrId;
 
